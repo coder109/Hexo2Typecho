@@ -1,48 +1,48 @@
 # Hexo2Typecho
 
-本项目提供两个迁移脚本：
+This project provides two migration scripts:
 
-- `hexo2typecho.py`：把 Hexo Markdown 文章转换为 Typecho SQL（`contents`、`metas`、`relationships`）。
-- `artalk2typecho_comments.py`：把 Artalk SQLite 评论转换为 Typecho SQL（`comments`，并回填 `contents.commentsNum`）。
+- `hexo2typecho.py`: convert Hexo Markdown posts into Typecho SQL (`contents`, `metas`, `relationships`).
+- `artalk2typecho_comments.py`: convert Artalk SQLite comments into Typecho SQL (`comments`), and refresh `contents.commentsNum`.
 
-## 脚本说明
+## Script Overview
 
-### `hexo2typecho.py`（文章迁移）
+### `hexo2typecho.py` (Post Migration)
 
-它会扫描 Hexo 文章目录（默认 `source/_posts`），读取每篇文章的 Front Matter 和正文，并生成三张 Typecho 相关表的数据：
+This script scans the Hexo post directory (default: `source/_posts`), reads front matter and body from each post, and generates data for three Typecho tables:
 
 - `contents`
 - `metas`
 - `relationships`
 
-脚本会自动完成以下处理：
+It automatically handles:
 
-- 解析 Front Matter（优先 `PyYAML`，不可用时回退到内置简易解析器）
-- 提取并规范化 `title`、`slug`、`date`、`updated`、`categories`、`tags`、`status`
-- 识别 `layout: page` 并写入 Typecho `type=page`
-- 处理 Hexo 资源目录（asset folder）图片链接
-- 可选重写相对图片链接到统一前缀（如 `/hexo-assets/...`）
-- 可选规范化 MathJAX 下划线写法（仅作用于数学表达式，避开代码块）
-- 生成完整 SQL 事务及自增 ID 调整语句
+- Front matter parsing (prefers `PyYAML`, falls back to built-in parser)
+- Normalization of `title`, `slug`, `date`, `updated`, `categories`, `tags`, `status`
+- `layout: page` detection and mapping to Typecho `type=page`
+- Hexo asset folder image links
+- Optional rewriting of relative image links to a unified prefix (for example, `/hexo-assets/...`)
+- Optional MathJAX underscore normalization (math expressions only, code blocks excluded)
+- SQL transaction output and AUTO_INCREMENT adjustment statements
 
-### `artalk2typecho_comments.py`（评论迁移）
+### `artalk2typecho_comments.py` (Comment Migration)
 
-它会读取 Artalk 数据库中的 `comments/users/pages`，生成 Typecho 评论导入 SQL：
+This script reads `comments/users/pages` from the Artalk database and generates Typecho comment import SQL:
 
-- 插入 `comments` 表
-- 按 Artalk 回复关系映射 Typecho `parent`
-- 通过页面标题匹配 `contents.cid`（优先 `pages.title`，并回退 URL 解码标题）
-- 回填 `contents.commentsNum`
-- 调整 `comments` 自增 ID
+- Insert rows into `comments`
+- Map Artalk reply relationships to Typecho `parent`
+- Match `contents.cid` by page title (prefer `pages.title`, fallback to URL-decoded title)
+- Refresh `contents.commentsNum`
+- Adjust `comments` AUTO_INCREMENT
 
-## 环境要求
+## Requirements
 
 - Python 3.10+
-- 可选依赖：`PyYAML`（仅 `hexo2typecho.py` 需要，未安装也可运行）
+- Optional dependency: `PyYAML` (only for `hexo2typecho.py`; script still runs without it)
 
-## 快速开始
+## Quick Start
 
-### 1) 文章：Hexo -> Typecho
+### 1) Posts: Hexo -> Typecho
 
 ```bash
 python hexo2typecho.py \
@@ -51,9 +51,9 @@ python hexo2typecho.py \
   --truncate
 ```
 
-如果 `--source` 指到 Hexo 的 `source` 根目录，脚本会在合适条件下自动切到 `source/_posts`。
+If `--source` points to Hexo's `source` root, the script will switch to `source/_posts` when appropriate.
 
-### 2) 评论：Artalk -> Typecho
+### 2) Comments: Artalk -> Typecho
 
 ```bash
 python artalk2typecho_comments.py \
@@ -61,43 +61,44 @@ python artalk2typecho_comments.py \
   --output ./artalk_comments_typecho.sql
 ```
 
-## 常用参数
+## Common Arguments
 
 ### `hexo2typecho.py`
 
-- `--source, -s`：Hexo 文章目录（默认 `source/_posts`）
-- `--output, -o`：输出 SQL 文件路径（默认 `typecho_import.sql`）
-- `--table-prefix`：Typecho 表前缀（默认 `typecho_`）
-- `--author`：默认作者名（Front Matter 无 author 时使用）
-- `--author-id`：Typecho `authorId`（默认 `1`）
-- `--include-drafts`：包含草稿/未发布文章
-- `--truncate`：导入前先清空 `contents/metas/relationships`
-- `--cid-start`：起始 `cid`
-- `--mid-start`：起始 `mid`
-- `--asset-mode`：`keep` 或 `prefix`（默认 `prefix`）
-- `--asset-url-prefix`：图片前缀（默认 `/hexo-assets`）
-- `--math-underscore-mode`：`keep` / `underscore` / `escaped`
-- `--encoding`：输出编码（默认 `utf-8`）
+- `--source, -s`: Hexo post directory (default: `source/_posts`)
+- `--output, -o`: output SQL path (default: `typecho_import.sql`)
+- `--table-prefix`: Typecho table prefix (default: `typecho_`)
+- `--author`: default author name (used when front matter has no author)
+- `--author-id`: Typecho `authorId` (default: `1`)
+- `--include-drafts`: include draft/unpublished posts
+- `--truncate`: clear `contents/metas/relationships` before import
+- `--cid-start`: starting `cid`
+- `--mid-start`: starting `mid`
+- `--asset-mode`: `keep` or `prefix` (default: `prefix`)
+- `--asset-url-prefix`: image URL prefix (default: `/hexo-assets`)
+- `--math-underscore-mode`: `keep` / `underscore` / `escaped`
+- `--encoding`: output encoding (default: `utf-8`)
 
 ### `artalk2typecho_comments.py`
 
-- `--db`：Artalk SQLite 数据库路径（默认 `artalk.db`）
-- `--output, -o`：输出 SQL 文件路径（默认 `artalk_comments_typecho.sql`）
-- `--table-prefix`：Typecho 表前缀（默认 `typecho_`）
-- `--encoding`：输出编码（默认 `utf-8`）
+- `--db`: Artalk SQLite database path (default: `artalk.db`)
+- `--output, -o`: output SQL path (default: `artalk_comments_typecho.sql`)
+- `--table-prefix`: Typecho table prefix (default: `typecho_`)
+- `--encoding`: output encoding (default: `utf-8`)
 
-## 导入 Typecho
+## Import into Typecho
 
-建议导入顺序：
+Recommended import order:
 
-1. 先导入文章 SQL（`typecho_import.sql`）
-2. 再导入评论 SQL（`artalk_comments_typecho.sql`）
+1. Import post SQL first (`typecho_import.sql`)
+2. Import comment SQL next (`artalk_comments_typecho.sql`)
 
-示例：
+Example:
 
 ```bash
 mysql -u <user> -p <database> < typecho_import.sql
 mysql -u <user> -p <database> < artalk_comments_typecho.sql
 ```
 
-导入前建议先备份现有数据库。
+Back up your existing database before importing.
+
