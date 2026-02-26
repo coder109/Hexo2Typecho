@@ -1,5 +1,7 @@
 # Hexo2Typecho
 
+[English](./README.md) | [中文](./README.zh.md)
+
 本项目提供两个迁移脚本：
 
 - `hexo2typecho.py`：把 Hexo Markdown 文章转换为 Typecho SQL（`contents`、`metas`、`relationships`）。

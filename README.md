@@ -1,5 +1,7 @@
 # Hexo2Typecho
 
+[English](./README.md) | [中文](./README.zh.md)
+
 This project provides two migration scripts:
 
 - `hexo2typecho.py`: convert Hexo Markdown posts into Typecho SQL (`contents`, `metas`, `relationships`).
@@ -101,4 +103,3 @@ mysql -u <user> -p <database> < artalk_comments_typecho.sql
 ```
 
 Back up your existing database before importing.
-
